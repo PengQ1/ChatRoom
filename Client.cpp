@@ -2,11 +2,20 @@
 #include<sys/types.h>
 #include<stdlib.h>
 #include<string>
+
+#include<unistd.h>
+#include<iostream>
+#ifdef _WIN32
+#include <WinSock.h>
+#endif
+
+#ifndef _WIN32
 #include<sys/socket.h>
 #include<netinet/in.h>
 #include<arpa/inet.h>
-#include<unistd.h>
-#include<iostream>
+#endif
+
+
 
 using namespace std;
 
@@ -44,10 +53,9 @@ int main(int argc, char** argv)
 
    char buff[100] = {};
    char msg[100] = {};
-   char* recv_msg = "Recieved";
+   const char* recv_msg = "Recieved";
    int msg_len=100;
    while(1) {
-      cout<<"here"<<endl;
       if(read(socket_fd, buff, sizeof(buff)) > 0) {
          if(strcmp(buff, recv_msg) == 0) {
             cout<<"从服务器接收到消息: "<< buff <<endl;
