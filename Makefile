@@ -25,4 +25,4 @@ client:client.cpp
 	g++ -o client client.cpp
 
 clean:
-	rm main.o User.o ChatRoom.o server client
+	rm main.o User.o ChatRoom.o utils.o DataOpsUtils.o
