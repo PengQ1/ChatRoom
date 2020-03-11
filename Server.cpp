@@ -1,12 +1,17 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<arpa/inet.h>
-#include<unistd.h>
-#include<iostream>
-#include<csignal>
+#pragma once
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <iostream>
+#include <csignal>
+#include <cstring>
+#include "utils.h"
+#include "DataOpsUtils.h"
 
 using namespace std;
 
@@ -30,8 +35,8 @@ int main()
       exit(-1);
    }
 
-   char* ip_addr = "127.0.0.1";
-   int port = 8888;
+   const char* ip_addr = "127.0.0.1";
+   const int port = 8888;
 
    struct sockaddr_in addr;
    addr.sin_family = AF_INET;
@@ -60,23 +65,48 @@ int main()
       cout<<"ACCEPT FAIL! EXIT -1"<<endl;
       exit(-1);
    } else {
+      char buffer[255] = {};
       pid_t pid = fork();
       if(pid==0) {
          write(fd, "Welcome to chatroom!", 20);
+         memset(buffer, 0, sizeof(buffer));
+      }
          char *ip = inet_ntoa(client.sin_addr);
-         char *recv_msg_server = "Recieved";
+         const char *recv_msg_server = "Recieved";
          cout<<"IP: "<<ip<<" CONNECT SUCCESS"<<endl;
-         char buffer[255] = {};
+         
          while(1) {
             if(read(fd, buffer, sizeof(buffer)) > 0) {
-               cout<<buffer<<endl;
-               write(fd, recv_msg_server, 20);
-               memset(buffer, 0, sizeof(buffer));
+               if(buffer[0] == 'C') {
+                  string message = buffer;
+                  vector<string> msg_split_parts = SplitStringBySpecDelimeter(message, ' ');
+                  string username = msg_split_parts[1];
+                  string password = msg_split_parts[2];
+                  cout << "Begin register user now!" << endl;
+                  cout << "username: " << username << endl;
+                  cout << "password: " << password << endl; 
+                  write(fd, "Register User Now", 20);
+                  memset(buffer, 0, sizeof(buffer));
+                  if(InsertAUserInfo(username, password)) {
+                      cout << "Register Success!" << endl;
+                      write(fd, "Register Success!", 20);
+                      memset(buffer, 0, sizeof(buffer));
+                  } else {
+                      cout << "Register Failed!" << endl;
+                      write(fd, "Register Failed!", 20);
+                      memset(buffer, 0, sizeof(buffer));
+                  }
+               } else {
+                  cout<<buffer<<endl;
+                  write(fd, recv_msg_server, 20);
+                  memset(buffer, 0, sizeof(buffer));
+               }
             }
          }
-         close(fd);
-         exit(0);
-      }
+         
+      close(fd);
+      exit(0);
+
    }
    close(fd);
  }
